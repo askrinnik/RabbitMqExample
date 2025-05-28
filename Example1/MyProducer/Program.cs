@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using RabbitMQ.Client;
 
-var factory = new ConnectionFactory { HostName = "askrwin10.kansys.local" };
+var factory = new ConnectionFactory { HostName = "askrwin10" };
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 

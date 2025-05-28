@@ -2,11 +2,21 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-var factory = new ConnectionFactory { HostName = "askrwin10.kansys.local" };
-using var connection = await factory.CreateConnectionAsync();
-using var channel = await connection.CreateChannelAsync();
+const string hostName = "askrwin10";
 
-const string queueName = "myQueue";
+var factory = new ConnectionFactory { HostName = hostName };
+await using var connection = await factory.CreateConnectionAsync();
+await using var channel = await connection.CreateChannelAsync();
+
+const string exchangeName = "myExchange";
+
+var queueName = args.FirstOrDefault("defaultQueue");
+
+await channel.ExchangeDeclareAsync(
+    exchange: exchangeName,
+    durable: true,
+    autoDelete: false,
+    type: ExchangeType.Fanout);
 
 await channel.QueueDeclareAsync(
     queue: queueName,
@@ -15,7 +25,9 @@ await channel.QueueDeclareAsync(
     autoDelete: false,
     arguments: null);
 
-Console.WriteLine("Waiting for messages...");
+await channel.QueueBindAsync(queueName, exchangeName, string.Empty);
+
+Console.WriteLine($"Waiting for messages in the {exchangeName}/{queueName}...");
 
 var consumer = new AsyncEventingBasicConsumer (channel);
 consumer.ReceivedAsync += async (sender, eventArgs) =>
